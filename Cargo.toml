@@ -1,0 +1,15 @@
+[package]
+name = "aograph"
+version = "0.1.0"
+edition = "2024"
+description = "AND-OR graph data structures and algorithms"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/justinlubin/aograph-rs"
+categories = ["data-structures"]
+keywords = ["and", "or", "graph", "and-or"]
+
+[dependencies]
+indexmap = "2.12.1"
+jsongraph = "0.1.0"
+petgraph = "0.8.3"
+serde_json = "1.0.145"
