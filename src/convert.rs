@@ -2,6 +2,7 @@ use crate::core::*;
 
 use indexmap::IndexMap;
 
+/// Creates an AND-OR graph from a [`jsongraph::Graph`]
 impl TryFrom<jsongraph::Graph> for Graph {
     type Error = String;
 
@@ -58,6 +59,7 @@ impl TryFrom<jsongraph::Graph> for Graph {
     }
 }
 
+/// Creates a [`jsongraph::Graph`] from an AND-OR graph
 impl TryFrom<Graph> for jsongraph::Graph {
     type Error = String;
 
