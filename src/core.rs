@@ -273,6 +273,11 @@ impl Graph {
             }
         })
     }
+
+    /// Returns wheter or not the AND-OR graph is cyclic
+    pub fn is_cyclic(&self) -> bool {
+        petgraph::algo::toposort(&self.pg, None).is_err()
+    }
 }
 
 /// # Indexing operations
