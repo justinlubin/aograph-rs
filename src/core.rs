@@ -278,6 +278,11 @@ impl Graph {
     pub fn is_cyclic(&self) -> bool {
         petgraph::algo::toposort(&self.pg, None).is_err()
     }
+
+    /// Returns the number of nodes (AND node count + OR node count)
+    pub fn node_count(&self) -> usize {
+        self.pg.node_count()
+    }
 }
 
 /// # Indexing operations
