@@ -288,22 +288,10 @@ impl Graph {
         self.pg.node_count()
     }
 
-    /// Returns the depth of the graph (or None if not a tree)
+    /// Returns the maximum distance from the goal to any other node in the
+    /// same connected component (or None if cyclic)
     pub fn depth(&self) -> Option<usize> {
-        // This implementation relies on the fact that a graph is a tree iff the
-        // following two conditions are met:
-        //   Condition 1: # edges = # vertices - 1, and
-        //   Condition 2: the graph is connected
-
-        let n = self.pg.node_count();
-        let e = self.pg.edge_count();
-
-        if n == 0 {
-            return Some(0);
-        }
-
-        // Check Condition 1
-        if e != n - 1 {
+        if self.is_cyclic() {
             return None;
         }
 
@@ -328,11 +316,6 @@ impl Graph {
             for neighbor in self.pg.neighbors(nx) {
                 distances.entry(neighbor).or_insert(d + 1);
             }
-        }
-
-        // Check Condition 2 (all nodes must be reachable from root)
-        if distances.len() != n {
-            return None;
         }
 
         Some(ret)
