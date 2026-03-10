@@ -1,6 +1,7 @@
 use indexmap::{IndexMap, IndexSet};
 use petgraph::Direction;
 use petgraph::stable_graph as pg;
+use petgraph::visit::Bfs;
 use petgraph::visit::{EdgeRef, IntoEdgeReferences};
 use std::collections::HashMap;
 use std::fmt;
@@ -273,7 +274,10 @@ impl Graph {
             }
         })
     }
+}
 
+/// # Graph information
+impl Graph {
     /// Returns wheter or not the AND-OR graph is cyclic
     pub fn is_cyclic(&self) -> bool {
         petgraph::algo::toposort(&self.pg, None).is_err()
@@ -282,6 +286,56 @@ impl Graph {
     /// Returns the number of nodes (AND node count + OR node count)
     pub fn node_count(&self) -> usize {
         self.pg.node_count()
+    }
+
+    /// Returns the depth of the graph (or None if not a tree)
+    pub fn depth(&self) -> Option<usize> {
+        // This implementation relies on the fact that a graph is a tree iff the
+        // following two conditions are met:
+        //   Condition 1: # edges = # vertices - 1, and
+        //   Condition 2: the graph is connected
+
+        let n = self.pg.node_count();
+        let e = self.pg.edge_count();
+
+        if n == 0 {
+            return Some(0);
+        }
+
+        // Check Condition 1
+        if e != n - 1 {
+            return None;
+        }
+
+        // Minimum distances from the root (goal)
+        let mut distances = HashMap::new();
+
+        distances.insert(self.goal, 0);
+
+        // The "depth" is the maximum distance from the root
+        let mut ret = 0;
+
+        let mut bfs = Bfs::new(&self.pg, self.goal);
+
+        while let Some(nx) = bfs.next(&self.pg) {
+            // Invariant: distance for nx is set before it is popped from BFS
+            let d = distances[&nx];
+
+            // Compute max in same traversal to avoid second traversal
+            ret = ret.max(d);
+
+            // BFS guarantees nodes are first visited with minimum distance
+            for neighbor in self.pg.neighbors(nx) {
+                distances.entry(neighbor).or_insert(d + 1);
+            }
+        }
+
+        // Check Condition 2 (all nodes must be reachable from root)
+        if distances.len() != n {
+            return None;
+        }
+
+        Some(ret)
     }
 }
 
