@@ -2,8 +2,10 @@ use indexmap::{IndexMap, IndexSet};
 use petgraph::Direction;
 use petgraph::stable_graph as pg;
 use petgraph::visit::Bfs;
+use petgraph::visit::Dfs;
 use petgraph::visit::{EdgeRef, IntoEdgeReferences};
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::fmt;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -274,6 +276,19 @@ impl Graph {
             }
         })
     }
+
+    /// Returns an index to an AND node given a node identifier, if that
+    /// identifier can be found
+    pub fn find_and_by_id(&self, id: &nodeid) -> Option<AIdx> {
+        self.pg.node_indices().find_map(|pid| {
+            let n = &self.pg[pid];
+            if n.is_and() && n.id() == id {
+                Some(AIdx(pid))
+            } else {
+                None
+            }
+        })
+    }
 }
 
 /// # Graph information
@@ -407,6 +422,30 @@ impl Graph {
             self.pg.remove_node(aidx.0);
         }
         self.pg.remove_node(oidx.0);
+    }
+
+    /// Removes an AND node from an AND-OR graph
+    pub fn and_remove(&mut self, aidx: AIdx) {
+        self.pg.remove_node(aidx.0);
+    }
+
+    /// Removes all nodes that are not a descendent of the goal
+    pub fn remove_disconnected(&mut self) {
+        let mut connected = HashSet::new();
+        let mut dfs = Dfs::new(&self.pg, self.goal);
+        while let Some(nx) = dfs.next(&self.pg) {
+            connected.insert(nx);
+        }
+
+        let disconnected: HashSet<_> = self
+            .pg
+            .node_indices()
+            .filter(|nx| !connected.contains(nx))
+            .collect();
+
+        for nx in disconnected {
+            self.pg.remove_node(nx);
+        }
     }
 }
 
